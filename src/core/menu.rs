@@ -1,3 +1,27 @@
+/* 
+* MIT License
+* 
+* Copyright (c) 2025 f42h
+* 
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+* 
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
 use std::{env, fs, process};
 use std::process::{Command, exit};
 use std::str;
@@ -8,6 +32,7 @@ use super::dd_wrapper::wipe;
 use super::paths::Paths;
 
 fn print_banner() {
+    // Read from "assets/banner.txt" and send to stdout
     match fs::read_to_string(Paths::get_banner()) {
         Ok(banner) => println!("{}", banner),
         Err(_) => eprintln!("banner.txt not found")
@@ -15,6 +40,8 @@ fn print_banner() {
 }
 
 fn check_root() {
+    // Ensure currend session is executed as root by 
+    // checking the environment variable key
     match env::var("USER") {
         Ok(name) => {
             if name != "root" {
@@ -45,6 +72,7 @@ fn block_devices_add(output_str: &str, delim: &str, bd_type: String) -> HashMap<
     let mut block_devices: HashMap<String, String> = HashMap::new();
     let mut idx = 1;
 
+    // Filter output of "ls /dev/*" for SCSI disk drives and store the results to a hash map
     for token in output_str.split(delim) {
         if token.contains(bd_type.as_str()) {
             block_devices.insert(idx.to_string(), token.to_string());
@@ -67,14 +95,16 @@ fn get_block_devices() -> HashMap<String, String> {
         .output()
         .unwrap();
 
+    // Get the full output of "ls" and filter only for SCSI devices
     let output_str = str::from_utf8(&output.stdout).unwrap();
+    // Ensure the output is correct formatted for later work
     let delim = if newline_char_count(output_str) > 2 { "\n" } else { " " };
 
     block_devices_add(output_str, delim, "sd".to_owned())
 }
 
 
-fn read_int_stdio() -> i32 {
+fn read_int_stdio() -> i32 { // Read int for menu index access
     let mut input = String::new();
 
     println!();
@@ -89,7 +119,7 @@ fn read_int_stdio() -> i32 {
     }
 }
 
-fn read_str_stdio() -> String {
+fn read_str_stdio() -> String { // Read string for confirmation
     let mut input = String::new();
 
     io::stdout().flush().unwrap();
@@ -100,7 +130,7 @@ fn read_str_stdio() -> String {
 
 struct DeviceMap<'a> {
     map: &'a HashMap<String, String>,
-    size: usize,
+    size: usize, // Size of the device map
 }
 
 impl<'a> DeviceMap<'a> {
@@ -113,6 +143,7 @@ fn show_devices(device_map: &DeviceMap) {
     for n in 0..device_map.size {
         let idx = n.to_string();
 
+        // Indexing found SCSI devices and send the results to stdout
         if let Some(device) = device_map.map.get(&idx) {
             println!("{n}] {}", device);
         }

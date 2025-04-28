@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "Run build.."
+cargo build --release
+
+echo "Executing UsbWipe.." 
+sudo ./target/release/usbwipe 

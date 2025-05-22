@@ -4,7 +4,6 @@ use crate::printdec;
 use std::{env, process::exit};
 
 fn show_options(devices: &Vec<String>) {
-    println!();
     printdec!('#', 30);
     
     println!("0 - Exit");
@@ -46,10 +45,11 @@ impl Mode {
     }
 }
 
-fn session(file_by_mode: String) {
+fn session(file_by_mode: String, mode_label: String) {
     loop {
         let devices = get_connected_devices();
 
+        println!("\nUSBWipe - Mode: {}", mode_label);
         show_options(&devices);
 
         let mut option = read_int_stdin();
@@ -104,6 +104,6 @@ pub(crate) fn start() {
     session_mode.set_mode(mode);
     
     if let Some(file) = session_mode.get_file() {
-        session(file);
+        session(file, option);
     }
 }

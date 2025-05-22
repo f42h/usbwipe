@@ -15,7 +15,7 @@ impl UsbNull {
             bin: "dd".to_string(),
             source: Self::construct_param("if=", &file), // Either /dev/urandom or /dev/zero
             destination: Self::construct_param("of=", usb_device), // Target
-            bytes: Self::construct_param("bs=", "4M"), // 4MB block size
+            bytes: Self::construct_param("bs=", "40M"), // 40MB block size
             status: Self::construct_param("status=", "progress"), // Display progress
             convert: Self::construct_param("conv=", "fsync") // Flush written data
         }

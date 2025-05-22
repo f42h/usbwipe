@@ -1,11 +1,11 @@
 use super::{dd, utils::{self, read_int_stdin, get_connected_devices, get_device_size}};
-use crate::printdec;
+use crate::{printdec, tern};
 
 use std::{env, process::exit};
 
 fn show_options(devices: &Vec<String>) {
     printdec!('#', 30);
-    
+
     println!("0 - Exit");
     for idx in 0..devices.len() {
         let n = idx + 1;
@@ -36,20 +36,23 @@ impl Mode {
         *self = mode
     }
 
-    fn get_file(&self) -> Option<String> {
+    fn get_file(&self) -> Option<&str> {
         match self {
-            Mode::Random => Some(String::from("/dev/urandom")),
-            Mode::Zero => Some(String::from("/dev/zero")),
+            Mode::Random => Some("/dev/urandom"),
+            Mode::Zero => Some("/dev/zero"),
             _ => None
         }
     }
 }
 
-fn session(file_by_mode: String, mode_label: String) {
+fn session(file_by_mode: &str, mode_label: &str, bs: &str) {
     loop {
         let devices = get_connected_devices();
 
-        println!("\nUSBWipe - Mode: {}", mode_label);
+        println!("\nUSBWipe");
+        printdec!('#', 30);
+        println!("Mode: {}", mode_label);
+        println!("Block Size: {}", tern!(bs == "40M", format!("{} [default]", bs), bs.to_string()));
         show_options(&devices);
 
         let mut option = read_int_stdin();
@@ -67,7 +70,7 @@ fn session(file_by_mode: String, mode_label: String) {
         let device = devices[option as usize].clone();
 
         if utils::ensure_destructiv_action(&device) {
-            dd::wipe(&device, file_by_mode.clone());
+            dd::wipe(&device, file_by_mode, bs);
         }
     }
 }
@@ -75,17 +78,23 @@ fn session(file_by_mode: String, mode_label: String) {
 pub(crate) fn start() {
     utils::check_root();
 
-    let mut args = env::args();
-    let option = match args.nth(1) {
+    let args: Vec<String> = env::args().collect();
+    let option = match args.get(1) {
         Some(mode) => mode,
         None => {
             eprintln!("Please specify the mode!");
             eprintln!("Options:");
-            eprintln!(" random - fill drive with random data");
-            eprintln!(" zero   - fill drive with zeros");
+            eprintln!(" random [block size, default: 40MB] - fill drive with random data");
+            eprintln!(" zero   [block size, default: 40MB] - fill drive with zeros");
+            eprintln!("");
+            eprintln!("Examples:");
+            eprintln!(" sudo ./usbwipe random");
+            eprintln!(" sudo ./usbwipe zero 4M");
             exit(-1);
         }
     };
+
+    let block_size = args.get(2).map(|custom_bs| custom_bs.clone()).unwrap_or_else(|| "40M".to_string());
 
     let mut mode = Mode::None;
 
@@ -104,6 +113,6 @@ pub(crate) fn start() {
     session_mode.set_mode(mode);
     
     if let Some(file) = session_mode.get_file() {
-        session(file, option);
+        session(file, option.as_str(), block_size.as_str());
     }
 }

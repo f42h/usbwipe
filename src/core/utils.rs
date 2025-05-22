@@ -45,9 +45,7 @@ pub(in crate::core) fn read_str_stdin() -> String { // Read string for confirmat
 pub(in crate::core) fn read_int_stdin() -> i32 { // Read int for menu index access
     let mut input = String::new();
 
-    println!();
     print!("Drive> ");
-
     stdout().flush().unwrap();
 
     io::stdin().read_line(&mut input).unwrap();

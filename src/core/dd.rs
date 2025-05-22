@@ -10,12 +10,12 @@ struct UsbNull {
 }
 
 impl UsbNull {
-    fn new(usb_device: &str, file: String) -> Self {
+    fn new(usb_device: &str, file: &str, bs: &str) -> Self {
         UsbNull {
             bin: "dd".to_string(),
-            source: Self::construct_param("if=", &file), // Either /dev/urandom or /dev/zero
+            source: Self::construct_param("if=", file), // Either /dev/urandom or /dev/zero
             destination: Self::construct_param("of=", usb_device), // Target
-            bytes: Self::construct_param("bs=", "40M"), // 40MB block size
+            bytes: Self::construct_param("bs=", bs), // 40MB block size
             status: Self::construct_param("status=", "progress"), // Display progress
             convert: Self::construct_param("conv=", "fsync") // Flush written data
         }
@@ -29,6 +29,8 @@ impl UsbNull {
     fn get_command_wipe(&self) -> Command {
         // dd if=/dev/zero of=/dev/sda bs=4M status=progress conv=fsync
         let mut cmd = Command::new(&self.bin);
+
+        dbg!(self.bytes.clone());
         
         cmd.arg(&self.source)
             .arg(&self.destination)
@@ -44,8 +46,8 @@ impl UsbNull {
     }
 }
 
-pub(crate) fn wipe(usb_device: &str, file: String) {
-    let session = UsbNull::new(usb_device, file.clone());
+pub(crate) fn wipe(usb_device: &str, file: &str, bs: &str) {
+    let session = UsbNull::new(usb_device, file, bs);
     let mut cmd = session.get_command_wipe();
 
     println!("WRITING.. {} -> {}", file, usb_device);

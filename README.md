@@ -18,20 +18,30 @@ bash build.sh
 sudo ./usbwipe
 ```
 
-### Options
-- `random`: Overwrite the target device with random data
-- `zero`: Overwrite the target device with zeros
+### Output
+```
+Please specify the mode!
+Options:
+ random [block size, default: 40MB] - fill drive with random data
+ zero   [block size, default: 40MB] - fill drive with zeros
 
-### Example
+Examples:
+ sudo ./usbwipe random
+ sudo ./usbwipe zero 4M
+```
+
+### Usage Example
 ```
 # sudo ./usbwipe random
 
-USBWipe - Mode: random
+USBWipe
+###############################
+Mode: random
+Block Size: 40M [default]
 ###############################
 0 - Exit
 1 - /dev/sda [Size: 28.88 GB]
 ###############################
-
 Drive> 1
 WARNING: THIS IS A DESTRUCTIVE ACTION! ALL DATA WILL BE LOST!
 Type "YES" to wipe /dev/sda.. YES # Confirm overwrite command

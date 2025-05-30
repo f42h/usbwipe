@@ -23,7 +23,7 @@ impl DDWrapper {
 
     #[inline]
     fn construct_param(flag: &str, value: &str) -> String {
-        flag.to_owned() + value 
+        format!("{}{}", flag, value)
     }
 
     fn get_command_wipe(&self) -> Command {

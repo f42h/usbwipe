@@ -1,6 +1,6 @@
 use std::{env, fs, io::{self, stdout, Write}, path::Path, process::{self, Command}};
 
-use crate::{gb, tern};
+use crate::gb;
 
 pub (in crate::core) fn get_device_size(dev: &str) -> Option<f64> {
     let mut size_gb: f64 = 0.0;
@@ -48,10 +48,7 @@ pub(in crate::core) fn read_int_stdin() -> i32 { // Read int for menu index acce
     stdout().flush().unwrap();
 
     io::stdin().read_line(&mut input).unwrap();
-    match input.trim().parse::<i32>() {
-        Ok(result) => result,
-        Err(_) => -1,
-    }
+    input.trim().parse::<i32>().unwrap_or(-1)
 }
 
 pub(in crate::core) fn ensure_destructiv_action(device: &str) -> bool {
@@ -59,7 +56,7 @@ pub(in crate::core) fn ensure_destructiv_action(device: &str) -> bool {
     print!("Type \"YES\" to wipe {}.. ", device);
 
     let confirm = read_str_stdin();
-    tern!(confirm == "YES" || confirm == "yes", true, false)
+    confirm == "YES" || confirm == "yes"
 }
 
 
@@ -80,6 +77,7 @@ pub(in crate::core) fn check_root() {
     }
 }
 
+#[inline]
 pub(in crate::core) fn device_exist(dev: &str) -> bool {
     Path::new(dev).exists()
 }

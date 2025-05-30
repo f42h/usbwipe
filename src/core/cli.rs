@@ -54,7 +54,7 @@ impl Mode {
 }
 
 fn session(file_by_mode: &str, mode_label: &str, bs: &str) {
-    loop {
+    'outer: loop {
         let devices = get_connected_devices();
 
         println!("\nUSBWipe");
@@ -79,17 +79,20 @@ fn session(file_by_mode: &str, mode_label: &str, bs: &str) {
         let device: String;
 
         if option == last.try_into().unwrap() { // Enter manual mode
-            loop {
+            'inner: loop {
                 let output = Command::new("lsblk").output().unwrap(); 
                 println!("\n{}", String::from_utf8_lossy(&output.stdout));
                 stdout().flush().unwrap();
-                
+
                 print!("Enter Device> ");
 
                 let manual_dev = read_str_stdin();
                 if manual_dev.is_empty() {
                     println!("Please enter a device!");
                     continue;
+                } else if manual_dev.eq_ignore_ascii_case("exit") {
+                    println!("Return back to menu..");
+                    continue 'outer;
                 }
 
                 if !device_exist(&manual_dev) {
@@ -99,7 +102,7 @@ fn session(file_by_mode: &str, mode_label: &str, bs: &str) {
 
                 device = manual_dev;
 
-                break;
+                break 'inner;
             }
         } else {
             option -= 1;

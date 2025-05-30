@@ -8,11 +8,7 @@ macro_rules! tern {
 #[macro_export]
 macro_rules! printdec {
     ($c:expr, $len:expr) => {
-        for _ in 0..=$len {
-            print!("{}", $c);
-        }
-    
-        println!();
+        println!("{}", $c.to_string().repeat($len + 1));
     };
 }
 

@@ -1,14 +1,17 @@
 use super::{dd, utils::{self, read_int_stdin, get_connected_devices, get_device_size}};
-use crate::{printdec, tern};
+use crate::{core::utils::{device_exist, read_str_stdin}, printdec, tern};
 
-use std::{env, process::exit};
+use std::{env, io::{stdout, Write}, process::{exit, Command}};
 
-fn show_options(devices: &Vec<String>) {
+fn show_options(devices: &Vec<String>) -> usize {
     printdec!('#', 30);
-
     println!("0 - Exit");
+
+    let mut n = 0;
+
     for idx in 0..devices.len() {
-        let n = idx + 1;
+        n = idx + 1;
+
         let device = &devices[idx];
         if let Some(device_size) =  get_device_size(&device) {
             println!("{n} - {} [Size: {:.2} GB]", device, device_size);
@@ -17,7 +20,12 @@ fn show_options(devices: &Vec<String>) {
         }
     }
 
+    n += 1;
+
+    println!("{n} - Specify device manually");
     printdec!('#', 30);
+
+    n
 }
 
 #[derive(PartialEq)]
@@ -53,10 +61,13 @@ fn session(file_by_mode: &str, mode_label: &str, bs: &str) {
         printdec!('#', 30);
         println!("Mode: {}", mode_label);
         println!("Block Size: {}", tern!(bs == "40M", format!("{} [default]", bs), bs.to_string()));
-        show_options(&devices);
 
+        let last = show_options(&devices);
         let mut option = read_int_stdin();
-        let device_count:i32 = devices.len().try_into().unwrap();
+        let mut device_count: i32 = devices.len().try_into().unwrap();
+
+        device_count += 1; // Add for manual option
+
         if option > device_count || option < 0 {
             println!("Invalid input! Please choose from 0 - {}", device_count);
             continue;
@@ -64,12 +75,38 @@ fn session(file_by_mode: &str, mode_label: &str, bs: &str) {
             println!("Exit!");
             break;
         }
+
+        let device: String;
+
+        if option == last.try_into().unwrap() { // Enter manual mode
+            loop {
+                let output = Command::new("lsblk").output().unwrap(); 
+                println!("\n{}", String::from_utf8_lossy(&output.stdout));
+                stdout().flush().unwrap();
+                
+                print!("Enter Device> ");
+
+                let manual_dev = read_str_stdin();
+                if manual_dev.is_empty() {
+                    println!("Please enter a device!");
+                    continue;
+                }
+
+                if !device_exist(&manual_dev) {
+                    println!("Device {} does not exist!", manual_dev);
+                    continue;
+                }
+
+                device = manual_dev;
+
+                break;
+            }
+        } else {
+            option -= 1;
+            device = devices[option as usize].clone();
+        }
         
-        option -= 1;
-
-        let device = devices[option as usize].clone();
-
-        if utils::ensure_destructiv_action(&device) {
+        if device_exist(&device) && utils::ensure_destructiv_action(&device) {
             dd::wipe(&device, file_by_mode, bs);
         }
     }
@@ -89,7 +126,7 @@ pub(crate) fn start() {
             eprintln!("");
             eprintln!("Examples:");
             eprintln!(" sudo ./usbwipe random");
-            eprintln!(" sudo ./usbwipe zero 4M");
+            eprintln!(" sudo ./usbwipe zero 40M");
             exit(-1);
         }
     };

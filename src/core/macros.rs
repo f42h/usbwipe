@@ -15,3 +15,10 @@ macro_rules! printdec {
         println!();
     };
 }
+
+#[macro_export]
+macro_rules! gb {
+    ($size:expr) => {
+        ($size * 512) as f64 / (1024.0 * 1024.0 * 1024.0)
+    };
+}

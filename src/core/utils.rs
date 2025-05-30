@@ -1,6 +1,6 @@
-use std::{env, fs, io::{self, stdout, Write}, process::{self, Command}};
+use std::{env, fs, io::{self, stdout, Write}, path::Path, process::{self, Command}};
 
-use crate::tern;
+use crate::{gb, tern};
 
 pub (in crate::core) fn get_device_size(dev: &str) -> Option<f64> {
     let mut size_gb: f64 = 0.0;
@@ -12,8 +12,7 @@ pub (in crate::core) fn get_device_size(dev: &str) -> Option<f64> {
             return None;
         }
 
-        // Each entry in /sys/block/.../size is size of 512 bytes
-        size_gb = (convert * 512) as f64 / (1024.0 * 1024.0 * 1024.0);
+        size_gb = gb!(convert);
     }
 
     Some(size_gb)
@@ -79,4 +78,8 @@ pub(in crate::core) fn check_root() {
             process::exit(-1);
         }
     }
+}
+
+pub(in crate::core) fn device_exist(dev: &str) -> bool {
+    Path::new(dev).exists()
 }

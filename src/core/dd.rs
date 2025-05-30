@@ -1,6 +1,6 @@
 use std::process::{exit, Command};
 
-struct UsbNull {
+struct DDWrapper {
     bin: String,
     source: String,
     destination: String,
@@ -9,9 +9,9 @@ struct UsbNull {
     convert: String,
 }
 
-impl UsbNull {
+impl DDWrapper {
     fn new(usb_device: &str, file: &str, bs: &str) -> Self {
-        UsbNull {
+        DDWrapper {
             bin: "dd".to_string(),
             source: Self::construct_param("if=", file), // Either /dev/urandom or /dev/zero
             destination: Self::construct_param("of=", usb_device), // Target
@@ -47,7 +47,7 @@ impl UsbNull {
 }
 
 pub(crate) fn wipe(usb_device: &str, file: &str, bs: &str) {
-    let session = UsbNull::new(usb_device, file, bs);
+    let session = DDWrapper::new(usb_device, file, bs);
     let mut cmd = session.get_command_wipe();
 
     println!("WRITING.. {} -> {}", file, usb_device);

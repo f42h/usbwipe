@@ -29,8 +29,6 @@ impl DDWrapper {
     fn get_command_wipe(&self) -> Command {
         // dd if=/dev/zero of=/dev/sda bs=4M status=progress conv=fsync
         let mut cmd = Command::new(&self.bin);
-
-        dbg!(self.bytes.clone());
         
         cmd.arg(&self.source)
             .arg(&self.destination)
